@@ -14,7 +14,7 @@ On the other hand, this is very useful if there is a plan for new venues to be c
 
 ## Data
 
-To accomplish the goal of learning the different impacts that a specific type of venue has on a property's price, the Foursquare API and a website that has a listing of all the properties listed in Santiago de Chile from July 2019 to now (www.portalinmobiliario.cl) will be used. Scrapped data is already available in *.csv* format.
+To accomplish the goal of learning the different impacts that a specific type of venue has on a property's price, the Foursquare API and a website that has a listing of many properties in Santiago de Chile from July 2019 to now (www.portalinmobiliario.cl) will be used. Scrapped data is already available in *.csv* format.
 
 The *.csv* file has the following columns:
 
@@ -35,8 +35,30 @@ The *.csv* file has the following columns:
 * **Bodega (float):** Number of storage rooms offered with property    
 * **Condicion (string):** If the property is new or used  
 * **Codigo (int):** Unique code for every listing on website  
+* **Url:** URL from where the info was scrapped
 
-Regarding the Foursquare API, requests will be made in order to fill in the type of venues that each of these listed properties have around them. So, using the Foursquare's *search* endpoint with the *intent* parameter set to *browse* all of the venues in the given radius will be retrieved.
+Example:
+
+* **Tipo de Propiedad (string):** departamento  
+* **Tipo de Publicacion (string):** venta  
+* **Direccion (string):** Los Militares 5200, Las Condes, Nueva Las Condes, Las Condes  
+* **Numero de Piezas (float):** 4.0  
+* **Numero de Banos(float):** 3.0  
+* **M2 Utiles (float):** 125.0  
+* **M2 Totales (float):** 139.0  
+* **Precio en Pesos (float):** 297568034.0  
+* **Precio en UF (float):** 10450.0  
+* **Fecha de Publicacion (string):** 2020-02-12  
+* **Fecha de Extraccion (string):** 2020-03-02  
+* **Lat (float):** -33.4073563  
+* **Lng (float):** -70.5754166  
+* **Estacionamiento Incluido (bool):** TRUE  
+* **Bodega (float):** 1.0    
+* **Condicion (string):** Usado  
+* **Codigo (int):** 5422974
+* **Url:** https://www.portalinmobiliario.com/venta/departamento/las-condes-metropolitana/5422974-los-militares-5200-las-condes-uda#position=7&type=item&tracking_id=1a728899-ef55-4246-b23c-cf02bea03fe8  
+
+Regarding the Foursquare API, requests will be made in order to fill in the type of venues that each of these listed properties have around them. So, using the Foursquare's *search* endpoint with the *intent* parameter set to *browse*, all of the venues in the given radius will be retrieved.
 
 This will return the following response fields:  
 
@@ -44,5 +66,64 @@ This will return the following response fields:
 * **name:** The best known name for this venue.  
 * **location:** An object containing none, some, or all of address (street address), crossStreet, city, state, postalCode, country, lat, lng, and distance. All fields are strings, except for lat, lng, and distance. Distance is measured in meters. Some venues have their locations intentionally hidden for privacy reasons (such as private residences). If this is the case, the parameter isFuzzed will be set to true, and the lat/lng parameters will have reduced precision.  
 * **categories:** An array, possibly empty, of categories that have been applied to this venue. One of the categories will have a primary field indicating that it is the primary category for the venue. For the complete category tree, see categories.  
+
+Example response:
+
+```json
+{
+  "meta": {
+    "code": 200,
+    "requestId": "5ac51d7e6a607143d811cecb"
+  },
+  "response": {
+    "venues": [
+      {
+        "id": "5642aef9498e51025cf4a7a5",
+        "name": "Mr. Purple",
+        "location": {
+          "address": "180 Orchard St",
+          "crossStreet": "btwn Houston & Stanton St",
+          "lat": 40.72173744277209,
+          "lng": -73.98800687282996,
+          "labeledLatLngs": [
+            {
+              "label": "display",
+              "lat": 40.72173744277209,
+              "lng": -73.98800687282996
+            }
+          ],
+          "distance": 8,
+          "postalCode": "10002",
+          "cc": "US",
+          "city": "New York",
+          "state": "NY",
+          "country": "United States",
+          "formattedAddress": [
+            "180 Orchard St (btwn Houston & Stanton St)",
+            "New York, NY 10002",
+            "United States"
+          ]
+        },
+        "categories": [
+          {
+            "id": "4bf58dd8d48988d1d5941735",
+            "name": "Hotel Bar",
+            "pluralName": "Hotel Bars",
+            "shortName": "Hotel Bar",
+            "icon": {
+              "prefix": "https://ss3.4sqi.net/img/categories_v2/travel/hotel_bar_",
+              "suffix": ".png"
+            },
+            "primary": true
+          }
+        ],
+        "venuePage": {
+          "id": "150747252"
+        }
+      }
+    ]
+  }
+}
+```
 
 Finally, the information given from the API will be merged to every property to which it belongs. In the end, the only field that will be used from the Foursquare response is the categories section. As for the *.csv* file, the price in CLP and the useful square meters will be used (to retrieve the price per square meter). Then a model can be trained to predict how much each property's square meter is worth, depending on which types of venues are around it. In a regression model, the coefficients would represent the influence of the proximity of each type of venue on the final price of a property.
